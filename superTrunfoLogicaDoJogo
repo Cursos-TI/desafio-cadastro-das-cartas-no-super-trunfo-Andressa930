@@ -44,8 +44,8 @@ char* nomeAtributo(int opcao) {
 
 int main() {
     // Duas cartas pré-cadastradas
-    Carta carta1 = {"Brasil", 214000000, 8516000, 22000, 25};
-    Carta carta2 = {"Portugal", 10500000, 92212, 35000, 114};
+    Carta carta1 = {"São Paulo", 214000000, 8516000, 22000, 25};
+    Carta carta2 = {"Rio De Janeiro", 10500000, 92212, 35000, 114};
 
     int escolha1, escolha2;
     int valor1c1, valor1c2, valor2c1, valor2c2;
