@@ -1,0 +1,151 @@
+#include <stdio.h>
+
+#define TAM 10
+#define NAVIO 3
+#define AGUA 0
+#define TAM_NAVIO 3
+#define H 5 // tamanho das matrizes de habilidades (5x5)
+
+// Inicializa o tabuleiro com água
+void inicializarTabuleiro(int tabuleiro[TAM][TAM]) {
+    for (int i = 0; i < TAM; i++) {
+        for (int j = 0; j < TAM; j++) {
+            tabuleiro[i][j] = AGUA;
+        }
+    }
+}
+
+// Verifica se pode colocar navio em certa posição/direção
+int podeColocar(int tabuleiro[TAM][TAM], int linha, int coluna, int dirLinha, int dirColuna) {
+    for (int k = 0; k < TAM_NAVIO; k++) {
+        int novaLinha = linha + k * dirLinha;
+        int novaColuna = coluna + k * dirColuna;
+        if (novaLinha < 0 || novaLinha >= TAM || novaColuna < 0 || novaColuna >= TAM)
+            return 0;
+        if (tabuleiro[novaLinha][novaColuna] == NAVIO)
+            return 0;
+    }
+    return 1;
+}
+
+// Coloca navio no tabuleiro
+void colocarNavio(int tabuleiro[TAM][TAM], int linha, int coluna, int dirLinha, int dirColuna) {
+    for (int k = 0; k < TAM_NAVIO; k++) {
+        int novaLinha = linha + k * dirLinha;
+        int novaColuna = coluna + k * dirColuna;
+        tabuleiro[novaLinha][novaColuna] = NAVIO;
+    }
+}
+
+// Cria matriz Cone 5x5
+void criarCone(int habilidade[H][H]) {
+    int modelo[H][H] = {
+        {0,0,1,0,0},
+        {0,1,1,1,0},
+        {1,1,1,1,1},
+        {0,0,0,0,0},
+        {0,0,0,0,0}
+    };
+    for (int i=0; i<H; i++)
+        for (int j=0; j<H; j++)
+            habilidade[i][j] = modelo[i][j];
+}
+
+// Cria matriz Cruz 5x5
+void criarCruz(int habilidade[H][H]) {
+    int modelo[H][H] = {
+        {0,0,1,0,0},
+        {1,1,1,1,1},
+        {0,0,1,0,0},
+        {0,0,0,0,0},
+        {0,0,0,0,0}
+    };
+    for (int i=0; i<H; i++)
+        for (int j=0; j<H; j++)
+            habilidade[i][j] = modelo[i][j];
+}
+
+// Cria matriz Octaedro 5x5
+void criarOctaedro(int habilidade[H][H]) {
+    int modelo[H][H] = {
+        {0,0,1,0,0},
+        {0,1,1,1,0},
+        {0,0,1,0,0},
+        {0,0,0,0,0},
+        {0,0,0,0,0}
+    };
+    for (int i=0; i<H; i++)
+        for (int j=0; j<H; j++)
+            habilidade[i][j] = modelo[i][j];
+}
+
+// Aplica a matriz da habilidade no tabuleiro em torno de (linha,coluna)
+void aplicarHabilidade(int tabuleiro[TAM][TAM], int habilidade[H][H], int linha, int coluna) {
+    int offset = H / 2; // deslocamento para centralizar
+
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < H; j++) {
+            if (habilidade[i][j] == 1) {
+                int novaLinha = linha + (i - offset);
+                int novaColuna = coluna + (j - offset);
+
+                // Verificação simples de limites
+                if (novaLinha >= 0 && novaLinha < TAM && novaColuna >= 0 && novaColuna < TAM) {
+                    // Se não for navio, marcamos como área de efeito (valor -1)
+                    if (tabuleiro[novaLinha][novaColuna] == AGUA)
+                        tabuleiro[novaLinha][novaColuna] = -1;
+                }
+            }
+        }
+    }
+}
+
+// Exibe o tabuleiro (diferentes caracteres para cada elemento)
+void imprimirTabuleiro(int tabuleiro[TAM][TAM]) {
+    printf("\nLegenda: 0=agua, 3=navio, *=area de efeito\n\n");
+    for (int i = 0; i < TAM; i++) {
+        for (int j = 0; j < TAM; j++) {
+            if (tabuleiro[i][j] == NAVIO)
+                printf("3 ");
+            else if (tabuleiro[i][j] == -1)
+                printf("* ");
+            else
+                printf("0 ");
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    int tabuleiro[TAM][TAM];
+    inicializarTabuleiro(tabuleiro);
+
+    // ---- Colocar navios ----
+    if (podeColocar(tabuleiro, 0, 0, 0, 1)) // horizontal
+        colocarNavio(tabuleiro, 0, 0, 0, 1);
+
+    if (podeColocar(tabuleiro, 5, 2, 1, 0)) // vertical
+        colocarNavio(tabuleiro, 5, 2, 1, 0);
+
+    if (podeColocar(tabuleiro, 2, 2, 1, 1)) // diagonal ↘
+        colocarNavio(tabuleiro, 2, 2, 1, 1);
+
+    if (podeColocar(tabuleiro, 6, 8, 1, -1)) // diagonal ↙
+        colocarNavio(tabuleiro, 6, 8, 1, -1);
+
+    // ---- Criar habilidades ----
+    int cone[H][H], cruz[H][H], octaedro[H][H];
+    criarCone(cone);
+    criarCruz(cruz);
+    criarOctaedro(octaedro);
+
+    // ---- Aplicar habilidades em pontos fixos ----
+    aplicarHabilidade(tabuleiro, cone, 4, 4); // Cone no centro
+    aplicarHabilidade(tabuleiro, cruz, 7, 7); // Cruz em (7,7)
+    aplicarHabilidade(tabuleiro, octaedro, 2, 7); // Octaedro em (2,7)
+
+    // ---- Exibir tabuleiro ----
+    imprimirTabuleiro(tabuleiro);
+
+    return 0;
+}
